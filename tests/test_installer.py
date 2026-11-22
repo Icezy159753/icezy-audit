@@ -358,7 +358,7 @@ class BundledPayloadTests(unittest.TestCase):
     def test_actual_payload_integrity_and_nested_dotfiles(self):
         files = cli.tree(cli.PAYLOAD)
         self.assertEqual(cli.tree_digest(files), cli.PAYLOAD_DIGEST)
-        self.assertEqual(len(files), 20)
+        self.assertEqual(len(files), 23)
         self.assertIn("templates/project-start/.github/copilot-instructions.md", files)
         self.assertIn("templates/project-start/.cursor/rules/security-baseline.mdc", files)
 
@@ -368,6 +368,18 @@ class BundledPayloadTests(unittest.TestCase):
             mentioned |= {m.decode() for m in re.findall(rb"~/(\.[\w./-]*?icezy(?:/SKILL\.md|\.toml|\.md))", data)}
         self.assertTrue(mentioned)
         self.assertLessEqual(mentioned, set(cli.DESTINATIONS.values()))
+
+    def test_scan_command_runs_bundled_scanner_read_only(self):
+        with tempfile.TemporaryDirectory(prefix="icezy-scan-cli-") as temp:
+            project, out = Path(temp) / "project", Path(temp) / "out"
+            project.mkdir()
+            (project / "m.sql").write_text("create table notes (id int);\n", encoding="utf-8")
+            with redirect_stdout(io.StringIO()):
+                code = cli.main(["scan", str(project), "--builtin-only", "--out", str(out), "--fail-on", "high"])
+            self.assertEqual(code, 1)
+            report = json.loads((out / "report.json").read_text(encoding="utf-8"))
+            self.assertIn("Table notes has no row level security", [f["title"] for f in report["findings"]])
+            self.assertEqual(sorted(p.name for p in project.iterdir()), ["m.sql"])
 
     def test_actual_payload_full_install_in_isolated_home(self):
         with tempfile.TemporaryDirectory(prefix="icezy-real-payload-") as temp:

@@ -78,4 +78,4 @@ For every endpoint, write deny-path tests first: anonymous, wrong role, other us
 - Webhooks: a bad signature, stale timestamp and replayed event ID are rejected.
 - Files: an oversized file, a disallowed type and an archive with `../` member names are rejected.
 
-Add CI from the first commit: lint, type check, tests, a SAST tool (bandit or semgrep), dependency audit (pip-audit or npm audit) and a secret scan. Run `references/audit-method.md` Phases 2 to 4 against your own diff before calling a feature done, and report findings honestly.
+Add CI from the first commit: lint, type check, tests, and the security scan. With the user's permission, copy `templates/ci/icezy-security-scan.yml` into `.github/workflows/`; it runs the bundled scanner (SAST, dependency audit, secret and BaaS-policy checks) on every pull request and fails on High or Critical findings. Run `scripts/security_scan.py` locally on the project before calling a feature done, and fix or explain every finding. Run `references/audit-method.md` Phases 2 to 4 against your own diff before calling a feature done, and report findings honestly.

@@ -34,5 +34,6 @@ jobs:
       - run: python -m unittest discover -s tests -v
       - run: python src/icezy_audit/payload/scripts/test_security_gate.py
       - run: python src/icezy_audit/payload/scripts/test_entrypoints.py
+      - run: python src/icezy_audit/payload/scripts/test_security_scan.py
       - run: python -m pip wheel --no-deps --wheel-dir dist .
       - run: python scripts/smoke_wheel.py
