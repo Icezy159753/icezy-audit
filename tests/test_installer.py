@@ -4,6 +4,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import tempfile
 import tomllib
 import unittest
@@ -300,7 +301,8 @@ class InstallerTests(unittest.TestCase):
         lock.parent.mkdir(parents=True)
         lock.write_text("owner lock")
         before = self.snapshot()
-        self.call("install", "--apply", code=1)
+        result = self.call("install", "--apply", code=1)
+        self.assertIn(str(lock), result["error"])
         self.assertEqual(before, self.snapshot())
         self.assertEqual(lock.read_text(encoding='utf-8'), "owner lock")
 
@@ -359,6 +361,13 @@ class BundledPayloadTests(unittest.TestCase):
         self.assertEqual(len(files), 17)
         self.assertIn("templates/project-start/.github/copilot-instructions.md", files)
         self.assertIn("templates/project-start/.cursor/rules/security-baseline.mdc", files)
+
+    def test_payload_adapter_paths_match_installer_destinations(self):
+        mentioned = set()
+        for data in cli.tree(cli.PAYLOAD).values():
+            mentioned |= {m.decode() for m in re.findall(rb"~/(\.[\w./-]*?icezy(?:/SKILL\.md|\.toml|\.md))", data)}
+        self.assertTrue(mentioned)
+        self.assertLessEqual(mentioned, set(cli.DESTINATIONS.values()))
 
     def test_actual_payload_full_install_in_isolated_home(self):
         with tempfile.TemporaryDirectory(prefix="icezy-real-payload-") as temp:
