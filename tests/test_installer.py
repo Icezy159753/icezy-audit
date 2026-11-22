@@ -358,7 +358,7 @@ class BundledPayloadTests(unittest.TestCase):
     def test_actual_payload_integrity_and_nested_dotfiles(self):
         files = cli.tree(cli.PAYLOAD)
         self.assertEqual(cli.tree_digest(files), cli.PAYLOAD_DIGEST)
-        self.assertEqual(len(files), 17)
+        self.assertEqual(len(files), 19)
         self.assertIn("templates/project-start/.github/copilot-instructions.md", files)
         self.assertIn("templates/project-start/.cursor/rules/security-baseline.mdc", files)
 
