@@ -9,12 +9,14 @@ import json
 import os
 from pathlib import Path
 import re
+import secrets
 import stat
+import subprocess
 import sys
 import tempfile
 
-VERSION = "0.1.4"
-PAYLOAD_DIGEST = "12030982ae2424413e9ae1c4ae217441dd4c99efb924cf99197699a1c1e71203"
+VERSION = "0.1.5"
+PAYLOAD_DIGEST = "3ebe8087954cfbe7dddeed26fc0f96de22b4a1294728719123cbda8320e4ce4b"
 PAYLOAD = Path(__file__).with_name("payload")
 DESTINATIONS = {
     "claude": ".claude/skills/icezy/SKILL.md",
@@ -241,15 +243,28 @@ def save_state(home: Path, records: dict[str, dict]) -> None:
         promote(home / STATE, data, previous)
 
 
+def inherit_parent_access(release: Path) -> None:
+    """Repair releases staged by <=0.1.4 under Python 3.13+, which Codex's Windows sandbox cannot read."""
+    if os.name != "nt":
+        return
+    result = subprocess.run(["icacls", str(release), "/reset", "/T", "/Q"], capture_output=True, text=True)
+    if result.returncode != 0:
+        raise Unsafe(f"could not restore inherited permissions on {release}")
+
+
 def ensure_baseline(home: Path, files: dict[str, bytes], sha: str) -> None:
     target = baseline_path(home, sha)
     checked(target)
     if target.exists():
         if tree(target) != files:
             raise Unsafe("installed baseline integrity mismatch")
+        inherit_parent_access(target.parent)
         return
     mkdir(target.parent.parent)
-    stage = Path(tempfile.mkdtemp(prefix=".icezy-stage-", dir=target.parent.parent))
+    # Not tempfile.mkdtemp: on Windows with Python 3.13+ its 0o700 mode becomes an
+    # owner-only ACL that sandboxed agents running as another user cannot read.
+    stage = target.parent.parent / f".icezy-stage-{secrets.token_hex(8)}"
+    stage.mkdir()
     try:
         for name, data in files.items():
             promote(stage / "baseline" / name, data, None)
