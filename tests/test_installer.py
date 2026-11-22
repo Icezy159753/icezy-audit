@@ -5,6 +5,8 @@ import json
 import os
 from pathlib import Path
 import re
+import stat
+import subprocess
 import tempfile
 import tomllib
 import unittest
@@ -184,6 +186,35 @@ class InstallerTests(unittest.TestCase):
         (self.payload / "SKILL.md").write_bytes(b"tampered")
         self.call("install", "--apply", code=1)
         self.assertFalse(self.home.exists())
+
+    def release(self):
+        return cli.baseline_path(self.home, self.sha).parent
+
+    def inherits_access(self, path):
+        if os.name == "nt":
+            return b"(I)" in subprocess.run(["icacls", str(path)], capture_output=True, check=True).stdout
+        probe = path.parent / "probe-default-mode"
+        probe.mkdir()
+        try:
+            return stat.S_IMODE(path.stat().st_mode) == stat.S_IMODE(probe.stat().st_mode)
+        finally:
+            probe.rmdir()
+
+    def test_release_uses_default_access_so_sandboxed_agents_can_read(self):
+        self.install()
+        self.assertTrue(self.inherits_access(self.release()))
+        self.assertTrue(self.inherits_access(self.release() / "baseline"))
+        if os.name == "nt":
+            self.assertTrue(self.inherits_access(self.release() / "baseline/SKILL.md"))
+
+    @unittest.skipUnless(os.name == "nt", "Windows ACL repair")
+    def test_reinstall_repairs_owner_only_release_from_older_versions(self):
+        self.install()
+        subprocess.run(["icacls", str(self.release()), "/inheritance:d"], check=True, capture_output=True)
+        self.assertFalse(self.inherits_access(self.release()))
+        self.install()
+        self.assertTrue(self.inherits_access(self.release()))
+        self.assertTrue(self.inherits_access(self.release() / "baseline/SKILL.md"))
 
     def test_installed_baseline_tampering_refused(self):
         self.install()

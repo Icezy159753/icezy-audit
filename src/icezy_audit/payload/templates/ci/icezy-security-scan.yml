@@ -1,6 +1,6 @@
 # Copy to .github/workflows/icezy-security-scan.yml in your project.
 # Fails the check when the scan finds High or Critical issues; the report appears in the run summary.
-# For stricter supply-chain control, replace the @v0.1.4 tag below with the reviewed full commit SHA.
+# For stricter supply-chain control, replace the @v0.1.5 tag below with the reviewed full commit SHA.
 name: icezy-security-scan
 on:
   pull_request:
@@ -23,7 +23,7 @@ jobs:
         run: python -m pip install --disable-pip-version-check "uv>=0.4,<1"
       - name: Security scan
         run: |
-          uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.4" \
+          uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.5" \
             icezy-audit scan . --out "$RUNNER_TEMP/icezy-scan" --fail-on high
       - name: Publish report
         if: always()
