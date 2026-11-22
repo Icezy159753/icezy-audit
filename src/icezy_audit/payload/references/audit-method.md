@@ -8,6 +8,7 @@ Use this procedure in audit mode, and on your own code before calling a start-mo
 2. Build an **entrypoint table** with one row per route, view, RPC method, GraphQL resolver, websocket handler, webhook, background job, queue consumer, CLI command and static-file mount. Columns: method/path, authentication, where the tenant/owner ID comes from (server session or client input), role check, inputs (path, query, body, headers, cookies, files), sinks reached, state changed, browser-cookie auth (CSRF relevant).
 3. Build a **trust-boundary list**: identity provider, database, cache, object storage, payment and webhook senders, outbound HTTP, email/SMS, AI APIs, the CDN or proxy in front, and the host. For each, record what the code trusts from it.
 4. Record the framework and library versions from manifests. Note security defaults that the code switches off.
+5. For React, Next.js, other SPAs, server-side TypeScript or a browser-called backend-as-a-service, add the entrypoints and sink patterns from `references/web-react-typescript.md` to this map and to Phase 3.
 
 ## Phase 2. Walk every entrypoint
 

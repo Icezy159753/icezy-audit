@@ -31,6 +31,8 @@ Keep files small and single-purpose. Type-annotate public functions. Name things
 - **Outbound requests.** Fetch user-supplied URLs only through one helper that enforces scheme and port, resolves the host and rejects private, loopback, link-local and metadata addresses, revalidates on redirects, and limits time and response size.
 - **Money, stock and bookings.** Use decimal types. Add database `CHECK` constraints (amount > 0, balance >= 0) and unique constraints (one booking per slot). Use a transaction with a row lock or an atomic conditional `UPDATE ... WHERE balance >= :amount`. Require an idempotency key for payment-like operations.
 - **Workflows.** Model each business workflow (claim, order, booking, refund, approval) as an explicit state machine in the service layer. Each transition lists its allowed source states, the roles that may perform it, and its preconditions taken from the specification, such as a required attachment, approval or payment. Perform the transition as one conditional update. Clients cannot set the state directly.
+- **Membership lifecycle.** Whenever users can join a tenant, also build the way out: remove a member, change a role, revoke pending invitations, and transfer or release what a removed member owned (bookings, files, records). Removing a member revokes their sessions and their access through every path (API, RLS, storage). Keep at least one admin per tenant.
+- **Quotas.** Bound what one user can hold or create (active bookings, uploads, invitations, records per day) so that one account cannot exhaust a shared resource.
 - **Webhooks.** Verify the signature over the raw body with the provider's SDK or a constant-time compare, enforce the timestamp tolerance, store the event ID to reject replays, and look up amounts and accounts on the server.
 - **Logging.** Use structured logs with actor, action, resource and outcome. Redact the `Authorization` header, cookies, passwords, tokens and personal data. Never log full request bodies or headers.
 - **Production config.** Debug off, allowed hosts set, docs and admin routes protected or disabled, the static root containing only built assets.
@@ -42,7 +44,7 @@ Keep files small and single-purpose. Type-annotate public functions. Name things
 - **Django.** Keep `django.middleware.csrf` on and do not use `csrf_exempt` on cookie-authenticated views. Set `DEBUG=False`, `ALLOWED_HOSTS`, `SECURE_SSL_REDIRECT`, `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SECURE_HSTS_SECONDS` and `SECURE_CONTENT_TYPE_NOSNIFF`, and run `manage.py check --deploy`. Use ModelForm or serializer fields as explicit lists. Do not use `extra()`, `raw()` with formatting, or `|safe` on user data. Scope querysets with a tenant-aware manager.
 - **Flask.** Use Flask-WTF or another CSRF extension, `SESSION_COOKIE_*` flags, and a strong `SECRET_KEY` from the environment. Use `send_from_directory` for files. Never use `render_template_string` with input or run with `debug=True` in production.
 - **Express / Node.** Use `helmet()`, `app.disable("x-powered-by")`, `express-rate-limit`, a maintained CSRF middleware for cookie auth, and zod or joi validation. Use `jwt.verify(token, key, { algorithms: [...] })`. Use mongoose with `sanitizeFilter` or strict schema casting. Never deep-merge request bodies into objects. Serve static files only from a dedicated `public/` folder that holds no source or `.env`.
-- **Next.js / React.** Do authorization in server actions and route handlers, never only in components. Treat only `NEXT_PUBLIC_*` values as public, and never put secrets in client bundles. Avoid `dangerouslySetInnerHTML`, or sanitize first.
+- **React, Next.js, TypeScript and Supabase/Firebase.** Follow `references/web-react-typescript.md` section 3. In short, authorize inside every server action, route handler and RLS policy, never only in components or middleware; parse every boundary with zod instead of `as` casts; pass DTOs, not ORM rows, to client components; and keep secrets out of public variables and the bundle.
 
 ## 4. Never do this
 
@@ -71,6 +73,7 @@ For every endpoint, write deny-path tests first: anonymous, wrong role, other us
 - Injection: quote, operator object (`{"$ne": null}`) and path traversal fixtures are rejected.
 - Money: negative and zero amounts are rejected; two concurrent spends of the full balance yield exactly one success.
 - Workflow: every transition is attempted from every wrong state and with each precondition missing, and each attempt is rejected.
+- Offboarding: after a member is removed, every read and write path (API, RLS, storage, existing session) denies them.
 - Tokens: expired, reused, tampered and `alg: none` tokens are rejected.
 - Webhooks: a bad signature, stale timestamp and replayed event ID are rejected.
 - Files: an oversized file, a disallowed type and an archive with `../` member names are rejected.

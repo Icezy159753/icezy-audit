@@ -12,8 +12,8 @@ import stat
 import sys
 import tempfile
 
-VERSION = "0.1.2"
-PAYLOAD_DIGEST = "68396b84d1444d80c2cb256236c5795243e9d99b4ab45b8783309270ccbb48a2"
+VERSION = "0.1.3"
+PAYLOAD_DIGEST = "92eda614ec486f68c9089f75149d127cf9e576aab159eb1bfbd049dcb9b3810c"
 PAYLOAD = Path(__file__).with_name("payload")
 DESTINATIONS = {
     "claude": ".claude/skills/icezy/SKILL.md",
@@ -159,7 +159,8 @@ def adapter(agent: str, baseline: Path) -> bytes:
     prompt = (
         f"Icezy Audit: interpret {invocation} audit or {invocation} start. "
         f"Read the shared baseline at this JSON-encoded filesystem path: {encoded_path} "
-        "and its relevant references (controls.md, audit-method.md, secure-build.md, sources.md, "
+        "and its relevant references (controls.md, audit-method.md, secure-build.md, "
+        "web-react-typescript.md for React/Next.js/TypeScript/Supabase/Firebase projects, sources.md, "
         "evidence-format.md, agent-entrypoints.md) and templates/PROVIDER-MATRIX.md, relative to that baseline. "
         "For audit: perform only a scoped READ-ONLY audit/preflight of the requested project/change "
         "following references/audit-method.md; do not initialize artifacts, write files in the project, "
