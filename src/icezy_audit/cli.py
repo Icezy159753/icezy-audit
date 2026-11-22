@@ -12,7 +12,7 @@ import stat
 import sys
 import tempfile
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 PAYLOAD_DIGEST = "096a598f1a77ea5dfa9853e227936be18c31e1f7db0248a1ccb490e797d7c479"
 PAYLOAD = Path(__file__).with_name("payload")
 DESTINATIONS = {

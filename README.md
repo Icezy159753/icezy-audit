@@ -11,13 +11,13 @@
 ดูแผนก่อน (ยังไม่เขียนไฟล์):
 
 ```sh
-uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.0" icezy-audit install --agents claude,codex,gemini,cursor,hermes
+uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.1" icezy-audit install --agents claude,codex,gemini,cursor,hermes
 ```
 
 ติดตั้งจริง:
 
 ```sh
-uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.0" icezy-audit install --agents claude,codex,gemini,cursor,hermes --apply
+uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.1" icezy-audit install --agents claude,codex,gemini,cursor,hermes --apply
 ```
 
 เลือกเฉพาะที่ใช้ได้ เช่น `--agents claude,codex` ไม่จำเป็นต้องมีทุกโปรแกรมติดตั้งอยู่แล้ว คำสั่งเตรียมไฟล์ไว้ให้ แต่ไม่ติดตั้ง coding clients ไม่ล็อกอิน และไม่เปลี่ยนโมเดล/ผู้ให้บริการของพี่
@@ -27,11 +27,11 @@ uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.0" icezy-aud
 ถ้าต้องการเก็บ CLI ไว้ใช้บ่อย:
 
 ```sh
-uv tool install "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.0"
+uv tool install "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.1"
 icezy-audit install --agents claude,codex,gemini,cursor,hermes --apply
 ```
 
-Tag ช่วยระบุรุ่น แต่เจ้าของ repo ยังย้าย tag ได้ งานที่ต้องการ pin แน่นขึ้นให้แทน `v0.1.0` ด้วย full reviewed commit SHA
+Tag ช่วยระบุรุ่น แต่เจ้าของ repo ยังย้าย tag ได้ งานที่ต้องการ pin แน่นขึ้นให้แทน `v0.1.1` ด้วย full reviewed commit SHA
 
 ## เรียกใน AI
 
