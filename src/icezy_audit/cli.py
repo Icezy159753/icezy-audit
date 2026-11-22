@@ -13,7 +13,7 @@ import sys
 import tempfile
 
 VERSION = "0.1.0"
-PAYLOAD_DIGEST = "5ac549a810381f31b1f6d3e35b45cad3479e841f97a1200ebe6f4aaadcca883d"
+PAYLOAD_DIGEST = "c07dfd7d1746412dcca77cb5929572889a08e78433e285ac0022b44eec3ad7e8"
 PAYLOAD = Path(__file__).with_name("payload")
 DESTINATIONS = {
     "claude": ".claude/skills/icezy/SKILL.md",

@@ -54,7 +54,7 @@ class InstallerTests(unittest.TestCase):
         return self.call("install", "--apply", *args)
 
     def state(self):
-        return json.loads((self.home / cli.STATE).read_text())
+        return json.loads((self.home / cli.STATE).read_text(encoding='utf-8'))
 
     def write_state(self, obj):
         target = self.home / cli.STATE
@@ -88,13 +88,15 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(len(state["adapters"]), 5)
         for agent in cli.DESTINATIONS:
             data = self.target(agent).read_bytes()
-            self.assertIn(str(baseline / "SKILL.md").encode(), data.replace(b"\\\\", b"\\"))
+            prompt = tomllib.loads(data.decode('utf-8'))['prompt'] if agent == 'gemini' else data.decode('utf-8')
+            decoded_path, _ = json.JSONDecoder().raw_decode(prompt.split('filesystem path: ', 1)[1])
+            self.assertEqual(decoded_path, str(baseline / 'SKILL.md'))
             if agent in ("claude", "codex", "hermes"):
                 self.assertIn(b"name: icezy", data)
         self.assertIn(b"disable-model-invocation: true", self.target().read_bytes())
         self.assertIn(b"$icezy audit", self.target("codex").read_bytes())
         self.assertIn(b"/icezy audit", self.target("hermes").read_bytes())
-        parsed = tomllib.loads(self.target("gemini").read_text())
+        parsed = tomllib.loads(self.target("gemini").read_text(encoding='utf-8'))
         self.assertIn("{{args}}", parsed["prompt"])
         self.assertNotIn("!{", parsed["prompt"])
         self.assertTrue(self.call("status")["ok"])
@@ -135,7 +137,7 @@ class InstallerTests(unittest.TestCase):
         self.assertTrue(self.target().exists())
         self.assertFalse(self.target("codex").exists())
         self.assertEqual(len(self.state()["adapters"]), 1)
-        self.assertEqual(unrelated.read_text(), "owner: untouched\n")
+        self.assertEqual(unrelated.read_text(encoding='utf-8'), "owner: untouched\n")
         self.assertEqual(cli.tree(cli.baseline_path(self.home, self.sha)), self.files)
 
     def test_uninstall_only_unchanged_managed_adapters(self):
@@ -236,7 +238,7 @@ class InstallerTests(unittest.TestCase):
         external.write_text("untouched")
         self.symlink(self.target(), external)
         self.call("install", "--apply", code=1)
-        self.assertEqual(external.read_text(), "untouched")
+        self.assertEqual(external.read_text(encoding='utf-8'), "untouched")
         self.assertFalse((self.home / ".icezy-audit").exists())
 
     def test_symlink_parent_and_home_refused(self):
@@ -257,7 +259,7 @@ class InstallerTests(unittest.TestCase):
         self.symlink(self.home / cli.STATE, external)
         self.call("uninstall", "--apply", code=1)
         self.call("install", "--apply", code=1)
-        self.assertEqual(external.read_text(), '{"version":1,"adapters":[]}')
+        self.assertEqual(external.read_text(encoding='utf-8'), '{"version":1,"adapters":[]}')
 
     def test_symlink_payload_refused(self):
         external = self.root / "outside"
@@ -300,7 +302,7 @@ class InstallerTests(unittest.TestCase):
         before = self.snapshot()
         self.call("install", "--apply", code=1)
         self.assertEqual(before, self.snapshot())
-        self.assertEqual(lock.read_text(), "owner lock")
+        self.assertEqual(lock.read_text(encoding='utf-8'), "owner lock")
 
     def test_scope_language_and_toml_special_paths(self):
         base = Path('space ü "quote" $dollar `tick` !{never-run} {{args}} \\backslash')
@@ -335,7 +337,7 @@ class InstallerTests(unittest.TestCase):
         self.target("hermes").unlink()
         self.symlink(self.target("hermes"), external)
         self.call("install", "--apply", "--agents", "claude", code=1)
-        self.assertEqual(external.read_text(), "owner content")
+        self.assertEqual(external.read_text(encoding='utf-8'), "owner content")
         self.assertFalse((self.home / ".icezy-audit/install.lock").exists())
 
     def test_non_target_environment_does_not_redirect_installation(self):
@@ -346,6 +348,11 @@ class InstallerTests(unittest.TestCase):
 
 
 class BundledPayloadTests(unittest.TestCase):
+    def test_bundled_text_uses_lf_for_cross_platform_hashes(self):
+        for name, data in cli.tree(cli.PAYLOAD).items():
+            with self.subTest(path=name):
+                self.assertNotIn(b'\r\n', data)
+
     def test_actual_payload_integrity_and_nested_dotfiles(self):
         files = cli.tree(cli.PAYLOAD)
         self.assertEqual(cli.tree_digest(files), cli.PAYLOAD_DIGEST)
@@ -355,7 +362,7 @@ class BundledPayloadTests(unittest.TestCase):
 
     def test_actual_payload_full_install_in_isolated_home(self):
         with tempfile.TemporaryDirectory(prefix="icezy-real-payload-") as temp:
-            home = Path(temp) / "isolated home"
+            home = Path(temp).resolve() / "isolated home"
             output = io.StringIO()
             with redirect_stdout(output):
                 result = cli.main(["install", "--home", str(home), "--apply"])
