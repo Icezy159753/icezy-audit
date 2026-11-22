@@ -15,7 +15,7 @@ class SecurityGateTests(unittest.TestCase):
         scratch = Path(os.environ.get('TMPDIR', tempfile.gettempdir()))
         self.temp = tempfile.TemporaryDirectory(prefix='security-gate-', dir=scratch)
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         gate.initialize(self.root)
         self.ref = 'sha256:' + 'a' * 64
         self.now = datetime.now(timezone.utc)

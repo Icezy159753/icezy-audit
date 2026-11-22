@@ -35,3 +35,4 @@ jobs:
       - run: python src/icezy_audit/payload/scripts/test_security_gate.py
       - run: python src/icezy_audit/payload/scripts/test_entrypoints.py
       - run: python -m pip wheel --no-deps --wheel-dir dist .
+      - run: python scripts/smoke_wheel.py
