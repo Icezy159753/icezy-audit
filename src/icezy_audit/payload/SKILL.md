@@ -21,6 +21,8 @@ The installed `icezy` command passes one mode:
 - **audit**: read-only. Follow `references/audit-method.md` phase by phase for the requested scope, using `references/controls.md` as the checklist, and report in its Phase 7 format. Do not run `security_gate.py init`, create `docs/security/` artifacts, edit project code or configuration, call paid APIs, or probe live systems. Isolated reproductions may use only the OS temporary directory. Name the artifacts a later `start` run would create instead.
 - **start**: apply Gates 0 to 3 before and during implementation, including `security_gate.py init`, within the scope the user authorized. Build with `references/secure-build.md`: its structure, day-one defaults, never-do list and per-feature tests. Before calling a feature done, run `references/audit-method.md` Phases 2 to 4 on your own diff.
 
+In both modes, when the project uses React, Next.js, another SPA framework, server-side TypeScript, or a browser-called backend-as-a-service such as Supabase or Firebase, also read `references/web-react-typescript.md` and apply it.
+
 If no mode was given, ask which mode the user wants.
 
 ## When to Use
