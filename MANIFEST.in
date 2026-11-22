@@ -1,0 +1,3 @@
+include LICENSE README.md SECURITY.md
+recursive-include docs *.md *.json
+recursive-include src/icezy_audit/payload *.md *.py *.mdc

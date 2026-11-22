@@ -1,0 +1,11 @@
+---
+description: Read the shared project security baseline before coding.
+globs:
+alwaysApply: true
+---
+
+Before architecture/scaffolding or implementation, read project-root `AGENTS.md`, `secure-project-baseline/SKILL.md`, and relevant references. Do not claim a full baseline read from this short rule. Apply the actual project/provider scope and evidence gates. If unavailable, report the missing baseline before affected implementation.
+
+Inventory all in-scope providers rather than assuming Firebase. Enforce server/rules/IAM authorization, protect credentials/private data, preserve owner work and verify affected behavior with real tests. Keep unknowns pending, never fabricate evidence or treat source configuration alone as runtime proof. Do not start unrequested production scans/spending. Acknowledge actual loading and material gaps once at the first development status.
+
+Always Apply controls context inclusion in supported Cursor clients, not guaranteed obedience or release enforcement. Required protected CI and deployment permissions remain separate.

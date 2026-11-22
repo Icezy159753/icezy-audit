@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "icezy-audit"
+version = "0.1.0"
+description = "Install security-by-design guidance for AI coding clients."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "DP Data / Icezy159753"}]
+dependencies = []
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Topic :: Security",
+]
+
+[project.urls]
+Repository = "https://github.com/Icezy159753/icezy-audit"
+Issues = "https://github.com/Icezy159753/icezy-audit/issues"
+
+[project.scripts]
+icezy-audit = "icezy_audit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["icezy_audit*"]
+
+[tool.setuptools.package-data]
+icezy_audit = ["payload/*.md", "payload/references/*.md", "payload/scripts/*.py", "payload/templates/*.md", "payload/templates/project-start/*.md", "payload/templates/project-start/.github/*.md", "payload/templates/project-start/.cursor/rules/*.mdc"]
