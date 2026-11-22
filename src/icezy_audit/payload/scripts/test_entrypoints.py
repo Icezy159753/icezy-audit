@@ -32,15 +32,38 @@ class EntrypointTests(unittest.TestCase):
 
     def test_agent_entry_reads_canonical_baseline(self):
         text = (START / 'AGENTS.md').read_text(encoding='utf-8')
-        self.assertIn('secure-project-baseline/SKILL.md', text)
+        self.assertIn('~/.claude/skills/icezy/SKILL.md', text)
         self.assertIn('ALL in-scope services', text)
         self.assertIn('not OS-enforced policy', text)
         self.assertTrue((ROOT / 'SKILL.md').is_file())
 
     def test_copilot_is_not_assumed_import(self):
         text = (START / '.github/copilot-instructions.md').read_text(encoding='utf-8')
-        self.assertIn('secure-project-baseline/SKILL.md', text)
+        self.assertIn('`icezy` skill', text)
         self.assertIn('depends on the Copilot client', text)
+
+    def test_no_reference_to_uninstalled_project_copy(self):
+        # The installer keeps the baseline under the user's home, never in the project.
+        for path in docs():
+            with self.subTest(path=path.relative_to(ROOT).as_posix()):
+                self.assertNotIn('secure-project-baseline/', path.read_text(encoding='utf-8'))
+
+    def test_referenced_payload_files_exist(self):
+        pattern = re.compile(r'`((?:references|templates|scripts)/[\w./-]+)`')
+        for path in docs():
+            for ref in pattern.findall(path.read_text(encoding='utf-8')):
+                with self.subTest(path=path.relative_to(ROOT).as_posix(), ref=ref):
+                    self.assertTrue((ROOT / ref).exists())
+
+    def test_baseline_uses_no_client_specific_tool_syntax(self):
+        text = (ROOT / 'SKILL.md').read_text(encoding='utf-8')
+        for token in ('terminal(command=', 'skill_view', '/skill '):
+            with self.subTest(token=token):
+                self.assertNotIn(token, text)
+
+
+def docs():
+    return sorted(p for p in ROOT.rglob('*') if p.suffix in {'.md', '.mdc'} and p.is_file())
 
     def test_primary_sources_recorded(self):
         text = (ROOT / 'references/agent-entrypoints.md').read_text(encoding='utf-8')

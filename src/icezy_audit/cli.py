@@ -13,7 +13,7 @@ import sys
 import tempfile
 
 VERSION = "0.1.0"
-PAYLOAD_DIGEST = "e5fa573e8a2b89330dfa7575a231bdc13fa6c338ee01b2e687b4b110d2f908af"
+PAYLOAD_DIGEST = "096a598f1a77ea5dfa9853e227936be18c31e1f7db0248a1ccb490e797d7c479"
 PAYLOAD = Path(__file__).with_name("payload")
 DESTINATIONS = {
     "claude": ".claude/skills/icezy/SKILL.md",
@@ -195,7 +195,8 @@ def locked(home: Path):
     try:
         fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
     except FileExistsError as exc:
-        raise Unsafe("installer locked; inspect stale lock manually") from exc
+        raise Unsafe(f"installer locked by {path}; if no other icezy-audit run is active, "
+                     "delete that file and retry") from exc
     identity = os.fstat(fd)
     try:
         yield
