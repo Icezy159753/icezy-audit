@@ -244,7 +244,10 @@ def save_state(home: Path, records: dict[str, dict]) -> None:
 
 
 def inherit_parent_access(release: Path) -> None:
-    """Repair releases staged by <=0.1.4 under Python 3.13+, which Codex's Windows sandbox cannot read."""
+    """Give the release the ACL of its parent so Codex's Windows sandbox user can read it.
+
+    Also repairs releases staged by <=0.1.4 under Python 3.13+, which were owner-only.
+    """
     if os.name != "nt":
         return
     result = subprocess.run(["icacls", str(release), "/reset", "/T", "/Q"], capture_output=True)
@@ -274,6 +277,7 @@ def ensure_baseline(home: Path, files: dict[str, bytes], sha: str) -> None:
         if target.parent.exists():
             raise Unsafe("incomplete release directory refused")
         os.rename(stage, target.parent)
+        inherit_parent_access(target.parent)
         if tree(target) != files:
             raise Unsafe("baseline promotion verification failed")
     finally:
