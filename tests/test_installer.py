@@ -192,7 +192,7 @@ class InstallerTests(unittest.TestCase):
 
     def inherits_access(self, path):
         if os.name == "nt":
-            return "(I)" in subprocess.run(["icacls", str(path)], capture_output=True, text=True).stdout
+            return b"(I)" in subprocess.run(["icacls", str(path)], capture_output=True, check=True).stdout
         probe = path.parent / "probe-default-mode"
         probe.mkdir()
         try:

@@ -247,7 +247,7 @@ def inherit_parent_access(release: Path) -> None:
     """Repair releases staged by <=0.1.4 under Python 3.13+, which Codex's Windows sandbox cannot read."""
     if os.name != "nt":
         return
-    result = subprocess.run(["icacls", str(release), "/reset", "/T", "/Q"], capture_output=True, text=True)
+    result = subprocess.run(["icacls", str(release), "/reset", "/T", "/Q"], capture_output=True)
     if result.returncode != 0:
         raise Unsafe(f"could not restore inherited permissions on {release}")
 
