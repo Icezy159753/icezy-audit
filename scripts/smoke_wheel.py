@@ -19,9 +19,12 @@ def main():
         if archive.testzip() is not None:
             raise RuntimeError('Wheel integrity failed')
         names = archive.namelist()
-        payload = [n for n in names if n.startswith('icezy_audit/payload/')]
-        if len(payload) != 17 or not any('/.cursor/' in n for n in payload) or not any('/.github/' in n for n in payload):
-            raise RuntimeError('Incomplete packaged baseline')
+        packaged = {n.removeprefix('icezy_audit/payload/') for n in names if n.startswith('icezy_audit/payload/')}
+        source_root = repository / 'src/icezy_audit/payload'
+        source = {p.relative_to(source_root).as_posix() for p in source_root.rglob('*')
+                  if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc'}
+        if packaged != source:
+            raise RuntimeError(f'Incomplete packaged baseline: missing {sorted(source - packaged)}')
     env = dict(os.environ)
     env.pop('PYTHONPATH', None)
     env['PIP_DISABLE_PIP_VERSION_CHECK'] = '1'
