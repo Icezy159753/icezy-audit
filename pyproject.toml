@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "icezy-audit"
-version = "0.1.3"
+version = "0.1.4"
 description = "Install security-by-design guidance for AI coding clients."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -30,4 +30,4 @@ where = ["src"]
 include = ["icezy_audit*"]
 
 [tool.setuptools.package-data]
-icezy_audit = ["payload/*.md", "payload/references/*.md", "payload/scripts/*.py", "payload/templates/*.md", "payload/templates/project-start/*.md", "payload/templates/project-start/.github/*.md", "payload/templates/project-start/.cursor/rules/*.mdc"]
+icezy_audit = ["payload/*.md", "payload/references/*.md", "payload/scripts/*.py", "payload/templates/*.md", "payload/templates/project-start/*.md", "payload/templates/project-start/.github/*.md", "payload/templates/project-start/.cursor/rules/*.mdc", "payload/templates/ci/*.yml"]

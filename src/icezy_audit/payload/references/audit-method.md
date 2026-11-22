@@ -67,7 +67,11 @@ Grep cannot find these. Trace each flow end to end:
 
 ## Phase 5. Run tools, and record what could not run
 
-Run what is available, with exact versions and commands, against a copy or read-only. Ephemeral runners that do not modify the project (`uvx`, `pipx run`, `npx --yes`) are acceptable when network access exists. Download only well-known tools from official registries.
+Start with the bundled scanner. It is read-only, writes its report outside the project, and runs built-in checks (secrets and public env variables, Supabase RLS/policies/storage/functions, Firebase rules and service-account files, Next.js/Vite/hosting config, Dockerfiles, lockfiles) plus every applicable standard tool below:
+
+`python <baseline-dir>/scripts/security_scan.py <project-root> --out <os-temp-dir>/icezy-scan` (or `icezy-audit scan <project-root>` when the CLI is installed). Add `--offline` when network access is not allowed.
+
+Treat its output as leads. Confirm each finding against the code and the installed versions before reporting it, dismiss false positives with a reason, and copy its tool table (RAN / NOT_RUN / FAILED) into your report. Then run anything else that is available, with exact versions and commands, against a copy or read-only. Ephemeral runners that do not modify the project (`uvx`, `pipx run`, `npx --yes`) are acceptable when network access exists. Download only well-known tools from official registries.
 
 - Python: `bandit -r <src> -f json`; `pip-audit -r requirements.txt` (needs the OSV/PyPI feed).
 - JavaScript: `npm audit --omit=dev --json` (needs a lockfile; if there is none, report that the audit could not run and why).

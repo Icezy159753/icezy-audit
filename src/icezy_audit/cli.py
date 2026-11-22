@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 from contextlib import contextmanager
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -12,8 +13,8 @@ import stat
 import sys
 import tempfile
 
-VERSION = "0.1.3"
-PAYLOAD_DIGEST = "92eda614ec486f68c9089f75149d127cf9e576aab159eb1bfbd049dcb9b3810c"
+VERSION = "0.1.4"
+PAYLOAD_DIGEST = "12030982ae2424413e9ae1c4ae217441dd4c99efb924cf99197699a1c1e71203"
 PAYLOAD = Path(__file__).with_name("payload")
 DESTINATIONS = {
     "claude": ".claude/skills/icezy/SKILL.md",
@@ -163,7 +164,8 @@ def adapter(agent: str, baseline: Path) -> bytes:
         "web-react-typescript.md for React/Next.js/TypeScript/Supabase/Firebase projects, sources.md, "
         "evidence-format.md, agent-entrypoints.md) and templates/PROVIDER-MATRIX.md, relative to that baseline. "
         "For audit: perform only a scoped READ-ONLY audit/preflight of the requested project/change "
-        "following references/audit-method.md; do not initialize artifacts, write files in the project, "
+        "following references/audit-method.md, starting with the read-only scripts/security_scan.py "
+        "(report to the OS temporary directory); do not initialize artifacts, write files in the project, "
         "run an unrequested full audit, use paid APIs, or run live probes; isolated reproductions may use "
         "only the OS temporary directory. Report evidence, unknowns and limitations. "
         "For start: apply the baseline and references/secure-build.md before implementation, "
@@ -342,8 +344,20 @@ def run(args: argparse.Namespace) -> dict:
     return result
 
 
+def scan(argv: list[str]) -> int:
+    spec = importlib.util.spec_from_file_location("icezy_security_scan", PAYLOAD / "scripts" / "security_scan.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.main(argv)
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    argv = sys.argv[1:] if argv is None else argv
+    if argv[:1] == ["scan"]:
+        return scan(argv[1:])
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     epilog="icezy-audit scan <project> [--out DIR] [--offline] [--fail-on high]: "
+                                            "read-only security scan (see `icezy-audit scan --help`).")
     parser.add_argument("--version", action="version", version=VERSION)
     parser.add_argument("--home", default=str(Path.home()), help="explicit isolated user home")
     commands = parser.add_subparsers(dest="command", required=True)

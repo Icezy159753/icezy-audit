@@ -11,13 +11,13 @@
 ดูแผนก่อน (ยังไม่เขียนไฟล์):
 
 ```sh
-uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.3" icezy-audit install --agents claude,codex,gemini,cursor,hermes
+uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.4" icezy-audit install --agents claude,codex,gemini,cursor,hermes
 ```
 
 ติดตั้งจริง:
 
 ```sh
-uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.3" icezy-audit install --agents claude,codex,gemini,cursor,hermes --apply
+uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.4" icezy-audit install --agents claude,codex,gemini,cursor,hermes --apply
 ```
 
 เลือกเฉพาะที่ใช้ได้ เช่น `--agents claude,codex` ไม่จำเป็นต้องมีทุกโปรแกรมติดตั้งอยู่แล้ว คำสั่งเตรียมไฟล์ไว้ให้ แต่ไม่ติดตั้ง coding clients ไม่ล็อกอิน และไม่เปลี่ยนโมเดล/ผู้ให้บริการของพี่
@@ -27,11 +27,11 @@ uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.3" icezy-aud
 ถ้าต้องการเก็บ CLI ไว้ใช้บ่อย:
 
 ```sh
-uv tool install "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.3"
+uv tool install "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.4"
 icezy-audit install --agents claude,codex,gemini,cursor,hermes --apply
 ```
 
-Tag ช่วยระบุรุ่น แต่เจ้าของ repo ยังย้าย tag ได้ งานที่ต้องการ pin แน่นขึ้นให้แทน `v0.1.3` ด้วย full reviewed commit SHA
+Tag ช่วยระบุรุ่น แต่เจ้าของ repo ยังย้าย tag ได้ งานที่ต้องการ pin แน่นขึ้นให้แทน `v0.1.4` ด้วย full reviewed commit SHA
 
 ## เรียกใน AI
 
@@ -59,6 +59,35 @@ Tag ช่วยระบุรุ่น แต่เจ้าของ repo ย
 ```
 
 ใน Codex เปลี่ยน prefix เป็น `$icezy` แทน ส่วนฟังก์ชันอื่นนอก scope ต้องขออนุญาต ไม่ใช่แค่เห็นคำว่า audit แล้วเริ่ม penetration test ทั้งระบบ
+
+## สแกนอัตโนมัติ
+
+สแกนโปรเจกต์แบบอ่านอย่างเดียว ไม่แก้ไฟล์โปรเจกต์ และเก็บรายงานไว้นอกโปรเจกต์:
+
+```sh
+uvx --from "git+https://github.com/Icezy159753/icezy-audit.git@v0.1.4" icezy-audit scan ./my-project
+```
+
+ตัวสแกนตรวจ 2 ชั้น:
+
+- **ตรวจในตัว (ใช้ได้แม้ไม่มีอินเทอร์เน็ต):**
+  - secret/API key ที่หลุดในโค้ดหรือ `.env` รวมถึงตัวแปร `VITE_`/`NEXT_PUBLIC_` ที่เป็นความลับ และ JWT ที่เป็น Supabase `service_role`
+  - Supabase: ตารางที่ไม่เปิด RLS, policy `USING (true)`, policy ที่ไม่มี `WITH CHECK`, policy ที่เชื่อ `user_metadata`, ฟังก์ชัน `SECURITY DEFINER`, storage bucket และ Edge Function
+  - Firebase: Firestore/Storage/Realtime Database rules ที่เปิดกว้างหรือยังเป็น test mode และไฟล์ service account
+  - config ของ Next.js/Vite/hosting เช่น source map, `next/image`, CSP
+  - Dockerfile และ lockfile
+- **เครื่องมือมาตรฐาน (รันเมื่อเครื่องมีเครื่องมือนั้น):** npm audit, pip-audit, semgrep, bandit, gitleaks, trivy, osv-scanner เครื่องมือที่รันไม่ได้จะรายงานเป็น `NOT_RUN` ไม่นับว่าผ่าน
+
+ตัวเลือก:
+
+- `--offline`: ไม่ใช้อินเทอร์เน็ต
+- `--builtin-only`: รันเฉพาะการตรวจในตัว
+- `--fail-on high`: คืนค่า exit 1 เมื่อพบปัญหาระดับ High ขึ้นไป ใช้กับ CI
+- `--out <dir>`: กำหนดที่เก็บ `report.md` และ `report.json`
+
+ผลที่ได้เป็นจุดที่ต้องตรวจต่อ ไม่ใช่คำตัดสิน ให้ `/icezy audit` ยืนยันกับโค้ดจริงอีกครั้ง
+
+ใช้ใน GitHub Actions: คัดลอก `templates/ci/icezy-security-scan.yml` จาก baseline ไปไว้ที่ `.github/workflows/` ของโปรเจกต์ workflow นี้จะสแกนทุก PR และ fail เมื่อพบปัญหาระดับ High
 
 ## ตัวติดตั้งทำอะไร
 
